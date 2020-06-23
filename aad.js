@@ -1,7 +1,7 @@
 import cookie from 'cookie'
 
 const aad = {
-  domain: AAD_DOMAIN, // `https://login.microsoftonline.com/${aad.tenant}/`
+  domain: AAD_DOMAIN,
   clientId: AAD_CLIENT_ID,
   clientSecret: AAD_CLIENT_SECRET,
   callbackUrl: AAD_CALLBACK_URL,

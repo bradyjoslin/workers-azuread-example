@@ -1,18 +1,14 @@
-**Port of [signalnerve/workers-auth0-example](https://github.com/signalnerve/workers-auth0-example) for Azure AD.**
+**Fork of [signalnerve/workers-auth0-example](https://github.com/signalnerve/workers-auth0-example) for targeting Azure AD instead of Auth0.**
 
 <div align="center">
-<h1>🔐🙅‍♀️ workers-auth0-example</h1>
-<p>authorization/authentication at the edge, using <a href="https://workers.dev">cloudflare workers</a> and <a href="https://auth0.com">auth0</a></p>
+<h1>🔐🙅‍♀️ workers-azuread-example</h1>
+<p>authorization/authentication at the edge, using <a href="https://workers.dev">cloudflare workers</a> and <a href="https://azure.microsoft.com/en-us/services/active-directory/">Azure AD</a></p>
 </div>
-
-## tutorial
-
-to learn about how to build this project and explore use-cases, check out the tutorial! _coming soon_
 
 ## prerequisites
 
 - a cloudflare workers unlimited account
-- an auth0 account and a configured application
+- an Azure AD account and a configured application
 - if deploying in front of a domain, a configured cloudflare zone (see the "origin" section of "deploys" below)
 - [`wrangler`][wrangler] cli tool installed and configured (see the [quick start][quick start] in the docs)
 
@@ -20,7 +16,7 @@ to learn about how to build this project and explore use-cases, check out the tu
 
 using `wrangler`, you can generate a new project using this repo:
 
-`wrangler generate my-auth-example https://github.com/signalnerve/workers-auth0-example`
+`wrangler generate my-auth-example https://github.com/bradyjoslin/workers-azuread-example`
 
 ## setup
 
@@ -31,8 +27,6 @@ this project makes heavy use of [`wrangler`][wrangler], the workers command-line
 the `wrangler.toml` config file in this repository needs to be configured for deploying your own version of this application. using `wrangler generate` will automatically add a `name` field - you'll also need to configure an account id, and, depending on if you're deploying your application to a _zone_ (see "deploying" later in this readme), a zone id and route.
 
 for more information on configuring this correctly, i strongly recommend you check out the [quick start][quick start] in the workers docs!
-
-_this section is still in progress!_
 
 #### kv namespace creation
 
@@ -46,13 +40,13 @@ wrangler kv:namespace create AUTH_STORE
 
 below is a table of secrets that the workers script will look for when it processes a client request. each should be set with `wrangler secret`:
 
-| wrangler secret key | value                                                                            |
-| ------------------- | -------------------------------------------------------------------------------- |
-| AUTH0_DOMAIN        | your auth0 domain (e.g. `myapp.auth0.com`)                                       |
-| AUTH0_CLIENT_ID     | your auth0 client id                                                             |
-| AUTH0_CLIENT_SECRET | your auth0 client secret                                                         |
-| AUTH0_CALLBACK_URL  | the callback url for your application (see below)                                |
-| SALT                | A secret string used to encrypt user `sub` values (see "Setting the salt" below) |
+| wrangler secret key | value                                                                                           |
+| ------------------- | ----------------------------------------------------------------------------------------------- |
+| AAD_DOMAIN          | your Azure AD domain with your tenant id (e.g. `https://login.microsoftonline.com/{tenant_id}`) |
+| AAD_CLIENT_ID       | your Azure AD client id                                                                         |
+| AAD_CLIENT_SECRET   | your Azure AD client secret                                                                     |
+| AAD_CALLBACK_URL    | the callback url for your application (see below)                                               |
+| SALT                | A secret string used to encrypt user `sub` values (see "Setting the salt" below)                |
 
 ### setting the callback url
 
@@ -60,7 +54,7 @@ in order to correctly set the callback url for your application, you will need t
 
 ### setting the salt
 
-in order to safely store user IDs (the `sub` value from Auth0), we should always refer to them by an encrypted value, which we can generate using the `crypto.subtle.digest` function in the web crypto api. in order to do this, we need to set a _salt_: a secret value that is included in the text we're encrypting.
+in order to safely store user IDs (the `sub` value from Azure AD), we should always refer to them by an encrypted value, which we can generate using the `crypto.subtle.digest` function in the web crypto api. in order to do this, we need to set a _salt_: a secret value that is included in the text we're encrypting.
 
 cloudflare provides an api for random data at `csprng.xyz`: visit `https://csprng.xyz/v1/api`, and copy the `Data` field to your clipboard. if you'd like to generate a string yourself, remember that it's important that the salt can't easily be guessed!
 
@@ -72,7 +66,7 @@ $ wrangler secret put SALT
 
 ### allowed origin/callback urls
 
-note that auth0 has great security defaults, and any callback urls or origins that you attempt to login from need to be explicitly provided in the auth0 dashboard as part of your application config. using the above `workers.dev` example, you should ensure the following values are set in your application's settings, along with any additional urls used as part of testing (e.g. `localhost:8787` for [wrangler dev][wrangler dev] usage):
+note that Azure AD has great security defaults, and any callback urls or origins that you attempt to login from need to be explicitly provided in the Azure AD dashboard as part of your application config. using the above `workers.dev` example, you should ensure the following values are set in your application's settings, along with any additional urls used as part of testing (e.g. `localhost:8787` for [wrangler dev][wrangler dev] usage):
 
 | allowed origins                         | allowed callback urls                        |
 | --------------------------------------- | -------------------------------------------- |
@@ -128,10 +122,11 @@ please file issues for bugs and feature requests on this project! note that this
 
 mit
 
-[auth0 custom data]: https://auth0.com/docs/microsites/manage-users/define-maintain-custom-user-data
-[htmlrewriter]: https://developers.cloudflare.com/workers/reference/apis/html-rewriter/
-[ngrok]: https://ngrok.com/
-[quick start]: https://developers.cloudflare.com/workers/quickstart#configure
-[workers sites]: https://developers.cloudflare.com/workers/sites
-[wrangler]: https://github.com/cloudflare/wrangler
-[wrangler dev]: https://github.com/cloudflare/wrangler#-dev
+## references
+
+- [Microsoft identity platform and OAuth 2.0 authorization code flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow)
+- [htmlrewriter](https://developers.cloudflare.com/workers/reference/apis/html-rewriter/)
+- [quick start](https://developers.cloudflare.com/workers/quickstart#configure)
+- [workers sites](https://developers.cloudflare.com/workers/sites)
+- [wrangler](https://github.com/cloudflare/wrangler)
+- [wrangler dev](https://github.com/cloudflare/wrangler#-dev)

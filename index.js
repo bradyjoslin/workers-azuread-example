@@ -1,6 +1,6 @@
 import { getAssetFromKV } from '@cloudflare/kv-asset-handler'
 
-import { authorize, logout, handleRedirect } from './auth0'
+import { authorize, logout, handleRedirect } from './aad'
 import { hydrateState } from './edge_state'
 
 addEventListener('fetch', event => event.respondWith(handleRequest(event)))
