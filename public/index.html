@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Workers Auth0 Example</title>
+    <link
+      href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"
+      defer
+    ></script>
+    <script id="edge_state" type="application/json">
+      {
+        "given_name": ""
+      }
+    </script>
+  </head>
+  <body class="antialiased font-sans bg-gray-200">
+    <div
+      class="max-w-7xl mx-auto py-12 sm:px-6 lg:px-8"
+      x-data="{ show: false }"
+      x-show="show"
+      x-init="setTimeout(() => show = true, 500)"
+      x-transition:enter="ease-out duration-500"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+    >
+      <div
+        class="max-w-3xl mx-auto"
+        x-data="JSON.parse(document.querySelector('script#edge_state').innerText)"
+      >
+        <div class="bg-white shadow sm:rounded-lg">
+          <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-xl leading-6 font-medium text-gray-900">
+              Hello <span x-text="given_name"></span> 👋
+            </h3>
+            <div class="mt-3 max-w-xl text-md leading-5 text-gray-500">
+              <p>
+                This is an <strong>authorized</strong> Workers application using
+                Auth0.
+              </p>
+            </div>
+            <div class="mt-3 text-md leading-5">
+              <a
+                href="https://github.com/signalnerve/workers-auth0-example"
+                class="font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:underline transition ease-in-out duration-150"
+              >
+                See the open-source GitHub repository to learn more about this
+                code &rarr;
+              </a>
+            </div>
+            <div class="mt-3 text-md leading-5">
+              <a
+                href="/logout"
+                class="font-medium text-red-600 hover:text-red-500 focus:outline-none focus:underline transition ease-in-out duration-150"
+              >
+                Log out &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
