@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "my-auth-test",
+  "name": "my-aad-test",
   "version": "1.0.0",
   "description": "A template for kick starting a Cloudflare Workers project",
   "main": "index.js",
@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write '**/*.{js,css,json,md}'"
   },
-  "author": "Kristian Freeman <kristian@kristianfreeman.com>",
+  "author": "Brady Joslin <brady@bradyjoslin.com>",
   "license": "MIT",
   "devDependencies": {
     "prettier": "^1.18.2"

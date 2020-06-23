@@ -1,16 +1,12 @@
+name = "my-aad-test"
 type = "webpack"
-# account_id = ""
+account_id = "d3765f1c5f3d3ed76be2701b78510d29"
 workers_dev = true
 
-name = "my-auth-test"
-account_id = "dc56444c4c955a1653106ccf997c1067"
-
-# this should be replaced with your own kv namespace if you are deploying a
-# version of this project! see "setup" in the readme.
-kv-namespaces = [
-  { binding = "AUTH_STORE", id = "dc9ec91bfd6b430ba9c4b403f885045e" }
+kv_namespaces = [ 
+    { binding = "AUTH_STORE", id = "3b273f42b03a445e90c8bfd93c523288" }
 ]
 
 [site]
-bucket = './public'
+bucket = "./public"
 entry-point = "."

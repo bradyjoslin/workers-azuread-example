@@ -1,34 +1,28 @@
 import cookie from 'cookie'
 
-const auth0 = {
-  domain: AUTH0_DOMAIN,
-  clientId: AUTH0_CLIENT_ID,
-  clientSecret: AUTH0_CLIENT_SECRET,
-  callbackUrl: AUTH0_CALLBACK_URL,
+const aad = {
+  domain: AAD_DOMAIN, // `https://login.microsoftonline.com/${aad.tenant}/`
+  clientId: AAD_CLIENT_ID,
+  clientSecret: AAD_CLIENT_SECRET,
+  callbackUrl: AAD_CALLBACK_URL,
 }
 
-const cookieKey = 'AUTH0-AUTH'
+const cookieKey = 'AAD-AUTH'
 
 const generateStateParam = async () => {
   const resp = await fetch('https://csprng.xyz/v1/api')
   const { Data: state } = await resp.json()
-  await AUTH_STORE.put(`state-${state}`, true, { expirationTtl: 60 })
+  await AUTH_STORE.put(`state-${state}`, true, { expirationTtl: 86400 })
   return state
 }
 
 const exchangeCode = async code => {
-  const body = JSON.stringify({
-    grant_type: 'authorization_code',
-    client_id: auth0.clientId,
-    client_secret: auth0.clientSecret,
-    code,
-    redirect_uri: auth0.callbackUrl,
-  })
+  const body = `client_id=${aad.clientId}&scope=openid%20profile%20email&code=${code}&redirect_uri=${aad.callbackUrl}&grant_type=authorization_code&client_secret=${aad.clientSecret}`
 
   return persistAuth(
-    await fetch(AUTH0_DOMAIN + '/oauth/token', {
+    await fetch(`${aad.domain}/oauth2/v2.0/token`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
       body,
     }),
   )
@@ -71,18 +65,18 @@ const validateToken = token => {
     let iss = token.iss
 
     // ISS can include a trailing slash but should otherwise be identical to
-    // the AUTH0_DOMAIN, so we should remove the trailing slash if it exists
+    // the aad.domain, so we should remove the trailing slash if it exists
     iss = iss.endsWith('/') ? iss.slice(0, -1) : iss
 
-    if (iss !== AUTH0_DOMAIN) {
+    if (iss !== `${aad.domain}/v2.0`) {
       throw new Error(
-        `Token iss value (${iss}) doesn't match AUTH0_DOMAIN (${AUTH0_DOMAIN})`,
+        `Token iss value (${iss}) doesn't match aad.domain (${aad.domain})`,
       )
     }
 
-    if (token.aud !== AUTH0_CLIENT_ID) {
+    if (token.aud !== aad.clientId) {
       throw new Error(
-        `Token aud value (${token.aud}) doesn't match AUTH0_CLIENT_ID (${AUTH0_CLIENT_ID})`,
+        `Token aud value (${token.aud}) doesn't match aad.clientId (${aad.clientId})`,
       )
     }
 
@@ -135,11 +129,13 @@ const persistAuth = async exchange => {
 }
 
 const redirectUrl = state =>
-  `${auth0.domain}/authorize?response_type=code&client_id=${
-    auth0.clientId
-  }&redirect_uri=${
-    auth0.callbackUrl
-  }&scope=openid%20profile%20email&state=${encodeURIComponent(state)}`
+  `${aad.domain}/oauth2/v2.0/authorize?client_id=${
+    aad.clientId
+  }&response_type=code&redirect_uri=${
+    aad.callbackUrl
+  }&response_mode=query&scope=openid%20profile%20email&state=${encodeURIComponent(
+    state,
+  )}`
 
 export const handleRedirect = async event => {
   const url = new URL(event.request.url)

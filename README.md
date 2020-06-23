@@ -1,3 +1,5 @@
+**Port of [signalnerve/workers-auth0-example](https://github.com/signalnerve/workers-auth0-example) for Azure AD.**
+
 <div align="center">
 <h1>🔐🙅‍♀️ workers-auth0-example</h1>
 <p>authorization/authentication at the edge, using <a href="https://workers.dev">cloudflare workers</a> and <a href="https://auth0.com">auth0</a></p>
