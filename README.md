@@ -1,5 +1,7 @@
 **Fork of [signalnerve/workers-auth0-example](https://github.com/signalnerve/workers-auth0-example) for targeting Azure AD instead of Auth0.**
 
+---
+
 <div align="center">
 <h1>🔐🙅‍♀️ workers-azuread-example</h1>
 <p>authorization/authentication at the edge, using <a href="https://workers.dev">cloudflare workers</a> and <a href="https://azure.microsoft.com/en-us/services/active-directory/">Azure AD</a></p>
@@ -10,7 +12,7 @@
 - a cloudflare workers unlimited account
 - an Azure AD account and a configured application
 - if deploying in front of a domain, a configured cloudflare zone (see the "origin" section of "deploys" below)
-- [`wrangler`][wrangler] cli tool installed and configured (see the [quick start][quick start] in the docs)
+- [`wrangler`](https://github.com/cloudflare/wrangler) cli tool installed and configured (see the [quick start](https://developers.cloudflare.com/workers/quickstart/) in the docs)
 
 ## getting started
 
@@ -26,7 +28,7 @@ this project makes heavy use of [`wrangler`][wrangler], the workers command-line
 
 the `wrangler.toml` config file in this repository needs to be configured for deploying your own version of this application. using `wrangler generate` will automatically add a `name` field - you'll also need to configure an account id, and, depending on if you're deploying your application to a _zone_ (see "deploying" later in this readme), a zone id and route.
 
-for more information on configuring this correctly, i strongly recommend you check out the [quick start][quick start] in the workers docs!
+for more information on configuring this correctly, i strongly recommend you check out the [quick start](https://developers.cloudflare.com/workers/quickstart/) in the workers docs!
 
 #### kv namespace creation
 
@@ -86,7 +88,7 @@ serve responses directly from the edge, without the need for an origin server. s
 
 ## edge state hydration
 
-by default, any information stored in auth0, such as your user's name, email, or other custom values (see ["Define and Maintain Custom User Data" from auth0's docs][auth0 custom data]) can be inlined into your website's response by defining `script#edge_state` tag in the `head` section of your static site. workers' [htmlrewriter][htmlrewriter] will inline the provided state into that tag as a JSON string. you can opt into this feature by pasting something similar to the below snippet:
+by default, any information stored in Azure AD, such as your user's name, email, or other custom values can be inlined into your website's response by defining `script#edge_state` tag in the `head` section of your static site. workers' [htmlrewriter][htmlrewriter] will inline the provided state into that tag as a JSON string. you can opt into this feature by pasting something similar to the below snippet:
 
 ```html
 <script id="edge_state" type="application/json">
@@ -95,10 +97,6 @@ by default, any information stored in auth0, such as your user's name, email, or
 ```
 
 note that if you'd like to disable this feature, you can toggle the config option `hydrateState` to `false`.
-
-## development
-
-local dev can be very closely simulated using [wrangler dev][wrangler dev]. note that `wrangler`/workers does not support specific secrets for `wrangler dev`. you should set up a different environment such as `development`, and use it in your local testing, in order to allow auth0 to successfully redirect you to `wrangler dev`'s `localhost:8787` set up (or use something like [`ngrok`][ngrok] for non-localhost usage). sane default environments for this repo are in development, see [this issue](https://github.com/signalnerve/workers-auth0-example/issues/4) for more details.
 
 ## deploying
 
@@ -112,7 +110,7 @@ this project uses [workers sites][workers sites] to serve static websites from t
 
 ### origin
 
-if you'd like to authorize/authenticate users at the edge, but still return a response from an origin server, set `config.originless` to `false`. this requires that your workers script is deployed to a zone (see ["configure" and "publish to your domain" in the cloudflare workers quick start][quick start]). _this hasn't been tested and may be broken. sorry, coming soon!_
+if you'd like to authorize/authenticate users at the edge, but still return a response from an origin server, set `config.originless` to `false`. this requires that your workers script is deployed to a zone (see ["configure" and "publish to your domain" in the cloudflare workers quick start](https://developers.cloudflare.com/workers/quickstart/)). _this hasn't been tested and may be broken. sorry, coming soon!_
 
 ## issues
 
@@ -126,7 +124,7 @@ mit
 
 - [Microsoft identity platform and OAuth 2.0 authorization code flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow)
 - [htmlrewriter](https://developers.cloudflare.com/workers/reference/apis/html-rewriter/)
-- [quick start](https://developers.cloudflare.com/workers/quickstart#configure)
+- [quick start](https://developers.cloudflare.com/workers/quickstart)
 - [workers sites](https://developers.cloudflare.com/workers/sites)
 - [wrangler](https://github.com/cloudflare/wrangler)
 - [wrangler dev](https://github.com/cloudflare/wrangler#-dev)
