@@ -22,7 +22,7 @@ using `wrangler`, you can generate a new project using this repo:
 
 ## setup
 
-this project makes heavy use of [`wrangler`][wrangler], the workers command-line tool, for managing environment variables and deploying this codebase. before trying to deploy this project, i recommend closely following this section of the readme to get all the relevant tokens, ids, and values that you'll need to successfully deploy this project.
+this project makes heavy use of `wrangler`, the workers command-line tool, for managing environment variables and deploying this codebase. before trying to deploy this project, i recommend closely following this section of the readme to get all the relevant tokens, ids, and values that you'll need to successfully deploy this project.
 
 ### `wrangler.toml`
 
@@ -66,14 +66,6 @@ with a random string generated, you can set it using `wrangler secret`:
 $ wrangler secret put SALT
 ```
 
-### allowed origin/callback urls
-
-note that Azure AD has great security defaults, and any callback urls or origins that you attempt to login from need to be explicitly provided in the Azure AD dashboard as part of your application config. using the above `workers.dev` example, you should ensure the following values are set in your application's settings, along with any additional urls used as part of testing (e.g. `localhost:8787` for [wrangler dev][wrangler dev] usage):
-
-| allowed origins                         | allowed callback urls                        |
-| --------------------------------------- | -------------------------------------------- |
-| my-auth-example.signalnerve.workers.dev | my-auth-example.signalnerve.workers.dev/auth |
-
 ## configuration
 
 this application features a growing number of configuration options available via the `config` object in `index.js`. these can be customized to toggle different features in the script, and are outlined below (with callouts to more detailed explanations, further in the readme):
@@ -88,7 +80,7 @@ serve responses directly from the edge, without the need for an origin server. s
 
 ## edge state hydration
 
-by default, any information stored in Azure AD, such as your user's name, email, or other custom values can be inlined into your website's response by defining `script#edge_state` tag in the `head` section of your static site. workers' [htmlrewriter][htmlrewriter] will inline the provided state into that tag as a JSON string. you can opt into this feature by pasting something similar to the below snippet:
+by default, any information stored in Azure AD, such as your user's name, email, or other custom values can be inlined into your website's response by defining `script#edge_state` tag in the `head` section of your static site. workers' `htmlrewriter` will inline the provided state into that tag as a JSON string. you can opt into this feature by pasting something similar to the below snippet:
 
 ```html
 <script id="edge_state" type="application/json">
@@ -106,7 +98,7 @@ note that if you'd like to disable this feature, you can toggle the config optio
 
 by default, this codebase is deployed without an origin - we call this "originless" - and can be used to serve responses "from the edge". this means that your application can be authenticated/authorized at a cloudflare edge server close to your users, which can make a huge impact on latency.
 
-this project uses [workers sites][workers sites] to serve static websites from the edge. by default, any assets in the `public` folder will be uploaded to workers kv, and used to serve your static site to users. if you'd like to change this from `public`, modify the `site.bucket` field in `wrangler.toml` to point to your application. if you're using `gatsby` or similar static site frameworks, this should represent the _final, compiled_ version of your site.
+this project uses `workers sites` to serve static websites from the edge. by default, any assets in the `public` folder will be uploaded to workers kv, and used to serve your static site to users. if you'd like to change this from `public`, modify the `site.bucket` field in `wrangler.toml` to point to your application. if you're using `gatsby` or similar static site frameworks, this should represent the _final, compiled_ version of your site.
 
 ### origin
 
