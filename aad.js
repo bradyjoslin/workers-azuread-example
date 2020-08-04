@@ -1,4 +1,7 @@
 import cookie from 'cookie'
+import { getDecryptedKV, putEncryptedKV } from 'encrypt-workers-kv'
+
+const password = PASSWORD // workers secret
 
 const aad = {
   domain: AAD_DOMAIN,
@@ -118,7 +121,7 @@ const persistAuth = async exchange => {
   const digestArray = new Uint8Array(digest)
   const id = btoa(String.fromCharCode.apply(null, digestArray))
 
-  await AUTH_STORE.put(id, JSON.stringify(body))
+  await putEncryptedKV(AUTH_STORE, id, JSON.stringify(body), password)
 
   const headers = {
     Location: '/',
@@ -165,7 +168,9 @@ const verify = async event => {
     if (!cookies[cookieKey]) return {}
     const sub = cookies[cookieKey]
 
-    const kvData = await AUTH_STORE.get(sub)
+    const kvData = new TextDecoder().decode(
+      await getDecryptedKV(AUTH_STORE, sub, password),
+    )
     if (!kvData) {
       throw new Error('Unable to find authorization data')
     }

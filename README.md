@@ -49,6 +49,7 @@ below is a table of secrets that the workers script will look for when it proces
 | AAD_CLIENT_SECRET   | your Azure AD client secret                                                                     |
 | AAD_CALLBACK_URL    | the callback url for your application (see below)                                               |
 | SALT                | A secret string used to encrypt user `sub` values (see "Setting the salt" below)                |
+| PASSWORD            | A secret string used to encrypt stored tokens using `encrypt-workers-kv`                        |
 
 ### setting the callback url
 
@@ -120,3 +121,4 @@ mit
 - [workers sites](https://developers.cloudflare.com/workers/sites)
 - [wrangler](https://github.com/cloudflare/wrangler)
 - [wrangler dev](https://github.com/cloudflare/wrangler#-dev)
+- [encrypt-workers-kv](https://github.com/bradyjoslin/encrypt-workers-kv)
