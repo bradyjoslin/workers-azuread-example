@@ -22,6 +22,19 @@ async function handleRequest(event) {
       : await fetch(event.request)
 
     const url = new URL(event.request.url)
+    const [authorized, { authorization, redirectUrl }] =
+      url.pathname !== '/favicon.ico' && url.pathname !== '/auth'
+        ? await authorize(event)
+        : [false, {}]
+
+    if (authorized && authorization.accessToken) {
+      request = new Request(request, {
+        headers: {
+          Authorization: `Bearer ${authorization.accessToken}`,
+        },
+      })
+    }
+
     if (url.pathname === '/auth') {
       const authorizedResponse = await handleRedirect(event)
       if (!authorizedResponse) {
@@ -34,16 +47,7 @@ async function handleRequest(event) {
       return response
     }
 
-    const [authorized, { authorization, redirectUrl }] = await authorize(event)
-    if (authorized && authorization.accessToken) {
-      request = new Request(request, {
-        headers: {
-          Authorization: `Bearer ${authorization.accessToken}`,
-        },
-      })
-    }
-
-    if (!authorized) {
+    if (!authorized && redirectUrl) {
       return Response.redirect(redirectUrl)
     }
 

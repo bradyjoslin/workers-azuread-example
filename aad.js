@@ -194,10 +194,6 @@ const verify = async event => {
 }
 
 export const authorize = async event => {
-  const url = new URL(event.request.url)
-  if (url.pathname === '/favicon.ico') {
-    return {}
-  }
   const authorization = await verify(event)
   if (authorization.accessToken) {
     return [true, { authorization }]
