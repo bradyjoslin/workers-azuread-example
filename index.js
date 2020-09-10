@@ -17,15 +17,6 @@ async function handleRequest(event) {
   try {
     let request = event.request
 
-    const [authorized, { authorization, redirectUrl }] = await authorize(event)
-    if (authorized && authorization.accessToken) {
-      request = new Request(request, {
-        headers: {
-          Authorization: `Bearer ${authorization.accessToken}`,
-        },
-      })
-    }
-
     let response = config.originless
       ? new Response(null)
       : await fetch(event.request)
@@ -41,6 +32,15 @@ async function handleRequest(event) {
         ...authorizedResponse,
       })
       return response
+    }
+
+    const [authorized, { authorization, redirectUrl }] = await authorize(event)
+    if (authorized && authorization.accessToken) {
+      request = new Request(request, {
+        headers: {
+          Authorization: `Bearer ${authorization.accessToken}`,
+        },
+      })
     }
 
     if (!authorized) {

@@ -12,9 +12,13 @@ const aad = {
 
 const cookieKey = 'AAD-AUTH'
 
+const csprng = () =>
+  btoa(
+    String.fromCharCode.apply(null, crypto.getRandomValues(new Uint8Array(32))),
+  )
+
 const generateStateParam = async () => {
-  const resp = await fetch('https://csprng.xyz/v1/api')
-  const { Data: state } = await resp.json()
+  const state = csprng()
   await AUTH_STORE.put(`state-${state}`, true, { expirationTtl: 86400 })
   return state
 }
@@ -190,11 +194,16 @@ const verify = async event => {
 }
 
 export const authorize = async event => {
+  const url = new URL(event.request.url)
+  if (url.pathname === '/favicon.ico') {
+    return {}
+  }
   const authorization = await verify(event)
   if (authorization.accessToken) {
     return [true, { authorization }]
   } else {
     const state = await generateStateParam()
+    console.log(`Generated state param for ${event.request.url}`)
     return [false, { redirectUrl: redirectUrl(state) }]
   }
 }
