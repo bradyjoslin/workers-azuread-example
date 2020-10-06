@@ -72,6 +72,6 @@ async function handleRequest(event) {
           .transform(response)
       : response
   } catch (err) {
-    return new Response(err.toString())
+    return new Response('', { status: 404 })
   }
 }

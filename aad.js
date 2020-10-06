@@ -2,6 +2,7 @@ import cookie from 'cookie'
 import { getDecryptedKV, putEncryptedKV } from 'encrypt-workers-kv'
 
 const password = PASSWORD // workers secret
+const sessionDuration = 86400
 
 const aad = {
   domain: AAD_DOMAIN,
@@ -19,7 +20,9 @@ const csprng = () =>
 
 const generateStateParam = async () => {
   const state = csprng()
-  await AUTH_STORE.put(`state-${state}`, true, { expirationTtl: 86400 })
+  await AUTH_STORE.put(`state-${state}`, true, {
+    expirationTtl: sessionDuration,
+  })
   return state
 }
 
@@ -120,16 +123,19 @@ const persistAuth = async exchange => {
     return { status: 401 }
   }
 
-  const text = new TextEncoder().encode(`${SALT}-${decoded.sub}`)
+  const salt = crypto.getRandomValues(new Uint8Array(16))
+  const text = new TextEncoder().encode(`${salt}-${decoded.sub}`)
   const digest = await crypto.subtle.digest({ name: 'SHA-256' }, text)
   const digestArray = new Uint8Array(digest)
   const id = btoa(String.fromCharCode.apply(null, digestArray))
 
-  await putEncryptedKV(AUTH_STORE, id, JSON.stringify(body), password)
+  await putEncryptedKV(AUTH_STORE, id, JSON.stringify(body), password, 10000, {
+    expirationTtl: sessionDuration,
+  })
 
   const headers = {
     Location: '/',
-    'Set-cookie': `${cookieKey}=${id}; Secure; HttpOnly; SameSite=Lax; Expires=${date.toUTCString()}`,
+    'Set-cookie': `${cookieKey}=${id}; Secure; HttpOnly; SameSite=Lax; Max-Age=${sessionDuration}`,
   }
 
   return { headers, status: 302 }
@@ -171,13 +177,15 @@ const verify = async event => {
     const cookies = cookie.parse(cookieHeader)
     if (!cookies[cookieKey]) return {}
     const sub = cookies[cookieKey]
+    let session
 
-    const kvData = new TextDecoder().decode(
-      await getDecryptedKV(AUTH_STORE, sub, password),
-    )
-    if (!kvData) {
-      throw new Error('Unable to find authorization data')
+    try {
+      session = await getDecryptedKV(AUTH_STORE, sub, password)
+    } catch (e) {
+      return {}
     }
+
+    const kvData = new TextDecoder().decode(session)
 
     let kvStored
     try {
