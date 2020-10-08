@@ -17,7 +17,16 @@ async function handleRequest(event) {
   try {
     let request = event.request
 
-    const [authorized, { authorization, redirectUrl }] = await authorize(event)
+    let response = config.originless
+      ? new Response(null)
+      : await fetch(event.request)
+
+    const url = new URL(event.request.url)
+    const [authorized, { authorization, redirectUrl }] =
+      url.pathname !== '/favicon.ico' && url.pathname !== '/auth'
+        ? await authorize(event)
+        : [false, {}]
+
     if (authorized && authorization.accessToken) {
       request = new Request(request, {
         headers: {
@@ -26,11 +35,6 @@ async function handleRequest(event) {
       })
     }
 
-    let response = config.originless
-      ? new Response(null)
-      : await fetch(event.request)
-
-    const url = new URL(event.request.url)
     if (url.pathname === '/auth') {
       const authorizedResponse = await handleRedirect(event)
       if (!authorizedResponse) {
@@ -43,7 +47,7 @@ async function handleRequest(event) {
       return response
     }
 
-    if (!authorized) {
+    if (!authorized && redirectUrl) {
       return Response.redirect(redirectUrl)
     }
 
@@ -68,6 +72,6 @@ async function handleRequest(event) {
           .transform(response)
       : response
   } catch (err) {
-    return new Response(err.toString())
+    return new Response('', { status: 404 })
   }
 }

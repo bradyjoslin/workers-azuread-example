@@ -48,24 +48,11 @@ below is a table of secrets that the workers script will look for when it proces
 | AAD_CLIENT_ID       | your Azure AD client id                                                                         |
 | AAD_CLIENT_SECRET   | your Azure AD client secret                                                                     |
 | AAD_CALLBACK_URL    | the callback url for your application (see below)                                               |
-| SALT                | A secret string used to encrypt user `sub` values (see "Setting the salt" below)                |
 | PASSWORD            | A secret string used to encrypt stored tokens using `encrypt-workers-kv`                        |
 
 ### setting the callback url
 
-in order to correctly set the callback url for your application, you will need to determine where your application will be deployed. regardless of whether you're setting up a _originless_ or _origin_-based deploy, the callback handler for this project is defined at `/auth`. this means that if you're testing or deploying a staging version of this project, your callback url will likely be something like `my-auth-example.signalnerve.workers.dev/auth`, or for production, you should set it to something like `my-production-app.com/auth`.
-
-### setting the salt
-
-in order to safely store user IDs (the `sub` value from Azure AD), we should always refer to them by an encrypted value, which we can generate using the `crypto.subtle.digest` function in the web crypto api. in order to do this, we need to set a _salt_: a secret value that is included in the text we're encrypting.
-
-cloudflare provides an api for random data at `csprng.xyz`: visit `https://csprng.xyz/v1/api`, and copy the `Data` field to your clipboard. if you'd like to generate a string yourself, remember that it's important that the salt can't easily be guessed!
-
-with a random string generated, you can set it using `wrangler secret`:
-
-```sh
-$ wrangler secret put SALT
-```
+in order to correctly set the callback url for your application, you will need to determine where your application will be deployed. regardless of whether you're setting up a _originless_ or _origin_-based deploy, the callback handler for this project is defined at `/auth`. this means that if you're testing or deploying a staging version of this project, your callback url will likely be something like `https://my-auth-example.signalnerve.workers.dev/auth`, or for production, you should set it to something like `https://my-production-app.com/auth`.
 
 ## configuration
 

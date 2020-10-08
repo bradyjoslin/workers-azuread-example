@@ -16,6 +16,6 @@
   "dependencies": {
     "@cloudflare/kv-asset-handler": "0.0.9",
     "cookie": "^0.4.1",
-    "encrypt-workers-kv": "^0.0.2"
+    "encrypt-workers-kv": "^0.0.3"
   }
 }
