@@ -67,7 +67,70 @@ const decodeJWT = function(token) {
   }
 }
 
-const validateToken = token => {
+/**
+ * Parse and decode a JWT.
+ * A JWT is three, base64 encoded, strings concatenated with ‘.’:
+ *   a header, a payload, and the signature.
+ * The signature is “URL safe”, in that ‘/+’ characters have been replaced by ‘_-’
+ * 
+ * Steps:
+ * 1. Split the token at the ‘.’ character
+ * 2. Base64 decode the individual parts
+ * 3. Retain the raw Bas64 encoded strings to verify the signature
+ * Src: https://gist.github.com/bcnzer/e6a7265fd368fa22ef960b17b9a76488
+ */
+function decodeFullJWT(token) {
+  const parts = token.split('.');
+  const header = JSON.parse(atob(parts[0]));
+  const payload = JSON.parse(atob(parts[1]));
+  const signature = atob(parts[2].replace(/_/g, '/').replace(/-/g, '+'));
+
+  return {
+    header: header,
+    payload: payload,
+    signature: signature,
+    raw: { header: parts[0], payload: parts[1], signature: parts[2] }
+  }
+}
+
+/**
+ * Validate the JWT.
+ *
+ * Steps:
+ * Reconstruct the signed message from the Base64 encoded strings.
+ * Load the RSA public key into the crypto library.
+ * Verify the signature with the message and the key.
+ * Src: https://gist.github.com/bcnzer/e6a7265fd368fa22ef960b17b9a76488
+ */
+async function isValidJwtSignature(token) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode([token.raw.header, token.raw.payload].join('.'));
+  const signature = new Uint8Array(Array.from(token.signature).map(c => c.charCodeAt(0)));
+
+  const keysData = await fetch("https://login.microsoftonline.com/common/discovery/v2.0/keys")
+    .then(response => response.json())
+
+  const kid = token.header.kid
+  const key = keysData.keys.filter((k) => k.kid === kid).shift()
+
+  const jwk = {
+    alg: "RS256",
+    kty: key.kty,
+    key_ops: ['verify'],
+    use: "sig",
+    x5c: key.x5c,
+    n: key.n,
+    e: key.e,
+    kid: key.kid,
+    x5t: key.x5t
+    }
+
+  const validationKey = await crypto.subtle.importKey('jwk', jwk, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
+  return crypto.subtle.verify('RSASSA-PKCS1-v1_5', validationKey, signature, data)
+
+}
+
+const validateToken = async token => {
   try {
     const dateInSecs = d => Math.ceil(Number(d) / 1000)
     const date = new Date()
@@ -117,14 +180,17 @@ const persistAuth = async exchange => {
   const date = new Date()
   date.setDate(date.getDate() + 1)
 
-  const decoded = JSON.parse(decodeJWT(body.id_token))
-  const validToken = validateToken(decoded)
-  if (!validToken) {
+  const token = decodeFullJWT(body.id_token)
+  const validToken = await validateToken(token.payload)
+  const validSig = await isValidJwtSignature(token)
+
+  if (!validToken || !validSig) {
+    console.log('invalid token')
     return { status: 401 }
   }
 
   const salt = crypto.getRandomValues(new Uint8Array(16))
-  const text = new TextEncoder().encode(`${salt}-${decoded.sub}`)
+  const text = new TextEncoder().encode(`${salt}-${token.payload.sub}`)
   const digest = await crypto.subtle.digest({ name: 'SHA-256' }, text)
   const digestArray = new Uint8Array(digest)
   const id = btoa(String.fromCharCode.apply(null, digestArray))
