@@ -39,7 +39,7 @@ const exchangeCode = async code => {
 }
 
 // https://github.com/pose/webcrypto-jwt/blob/master/index.js
-const decodeJWT = function(token) {
+const decodeJWTPayload = function(token) {
   var output = token
     .split('.')[1]
     .replace(/-/g, '+')
@@ -79,7 +79,7 @@ const decodeJWT = function(token) {
  * 3. Retain the raw Bas64 encoded strings to verify the signature
  * Src: https://gist.github.com/bcnzer/e6a7265fd368fa22ef960b17b9a76488
  */
-function decodeFullJWT(token) {
+function decodeJWT(token) {
   const parts = token.split('.');
   const header = JSON.parse(atob(parts[0]));
   const payload = JSON.parse(atob(parts[1]));
@@ -180,7 +180,7 @@ const persistAuth = async exchange => {
   const date = new Date()
   date.setDate(date.getDate() + 1)
 
-  const token = decodeFullJWT(body.id_token)
+  const token = decodeJWT(body.id_token)
   const validToken = await validateToken(token.payload)
   const validSig = await isValidJwtSignature(token)
 
@@ -261,7 +261,7 @@ const verify = async event => {
     }
 
     const { access_token: accessToken, id_token: idToken } = kvStored
-    const userInfo = JSON.parse(decodeJWT(idToken))
+    const userInfo = JSON.parse(decodeJWTPayload(idToken))
     return { accessToken, idToken, userInfo }
   }
   return {}
